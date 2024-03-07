@@ -1,6 +1,9 @@
 # Chat Widget Extensions Demo
 This repository contains a demonstration of various chat widget extensions for Voiceflow. The extensions include functionality for video playback, timers, forms, maps, file uploads, date selection, confetti effects, and feedback collection.
 
+## Video
+https://youtu.be/xY0vNkzFzAI
+
 ## Overview
 The demo showcases how to extend the capabilities of a chat widget by integrating custom UI elements and interactions. These extensions are designed to be used with the Voiceflow chat widget, which can be embedded into any webpage.
 
