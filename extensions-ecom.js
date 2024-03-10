@@ -475,3 +475,69 @@ export const FeedbackExtension = {
     element.appendChild(feedbackContainer)
   },
 }
+
+export const ShoppingCartExtension = {
+  name: 'ShoppingCart',
+  type: 'response',
+  match: ({ trace }) => trace.type === 'ext_shopping_cart' || trace.payload.name === 'ext_shopping_cart',
+  render: ({ trace, element }) => {
+    const cartContainer = document.createElement('div');
+
+    // Basic styling for the shopping cart
+    cartContainer.innerHTML = `
+      <style>
+        .cart-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px;
+          border-bottom: 1px solid #eee;
+        }
+        .cart-item:last-child {
+          border-bottom: none;
+        }
+        .item-name {
+          font-size: 1em;
+        }
+        .item-action {
+          cursor: pointer;
+          color: #007bff;
+        }
+      </style>
+      <div id="cartItems"></div>
+      <button id="checkoutButton">Checkout</button>
+    `;
+
+    // Example cart items, replace with dynamic content
+    const cartItems = [
+      { id: 1, name: "Product A", quantity: 2 },
+      { id: 2, name: "Product B", quantity: 1 },
+    ];
+
+    const cartItemsContainer = cartContainer.querySelector('#cartItems');
+    cartItems.forEach(item => {
+      const itemElement = document.createElement('div');
+      itemElement.className = 'cart-item';
+      itemElement.innerHTML = `
+        <span class="item-name">${item.name} (x${item.quantity})</span>
+        <span class="item-action" onclick="removeItem(${item.id})">Remove</span>
+      `;
+      cartItemsContainer.appendChild(itemElement);
+    });
+
+    // Add checkout button functionality
+    const checkoutButton = cartContainer.querySelector('#checkoutButton');
+    checkoutButton.addEventListener('click', () => {
+      // Implement checkout functionality
+      alert('Proceed to checkout...');
+    });
+
+    // Function to remove item from cart (example logic)
+    window.removeItem = (itemId) => {
+      console.log(`Remove item with id ${itemId}`);
+      // Update UI and backend cart state accordingly
+    };
+
+    element.appendChild(cartContainer);
+  },
+}
