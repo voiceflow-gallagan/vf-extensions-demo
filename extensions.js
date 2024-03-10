@@ -159,7 +159,7 @@ export const FileUploadExtension = {
   match: ({ trace }) =>
     trace.type === 'ext_fileUpload' || trace.payload.name === 'ext_fileUpload',
   render: ({ trace, element }) => {
-    const fileUploadContainer = document.createElement('div')
+    const fileUploadContainer = document.createElement('div');
     fileUploadContainer.innerHTML = `
       <style>
         .my-file-upload {
@@ -171,54 +171,66 @@ export const FileUploadExtension = {
       </style>
       <div class='my-file-upload'>Drag and drop a file here or click to upload</div>
       <input type='file' style='display: none;'>
-    `
+    `;
 
-    const fileInput = fileUploadContainer.querySelector('input[type=file]')
-    const fileUploadBox = fileUploadContainer.querySelector('.my-file-upload')
+    const fileInput = fileUploadContainer.querySelector('input[type=file]');
+    const fileUploadBox = fileUploadContainer.querySelector('.my-file-upload');
 
     fileUploadBox.addEventListener('click', function () {
-      fileInput.click()
-    })
+      fileInput.click();
+    });
 
-    fileInput.addEventListener('change', function () {
-      const file = fileInput.files[0]
-      console.log('File selected:', file)
+    fileInput.addEventListener('change', async function () {
+      const file = fileInput.files[0];
+      console.log('File selected:', file);
 
-      fileUploadContainer.innerHTML = `<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/upload/upload.gif" alt="Upload" width="50" height="50">`
+      fileUploadContainer.innerHTML = `<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/upload/upload.gif" alt="Upload" width="50" height="50">`;
 
-      var data = new FormData()
-      data.append('file', file)
+      var data = new FormData();
+      data.append('file', file);
 
-      // Aanpassing voor GoFile
-      fetch('https://api.gofile.io/uploadFile', { // Aangepaste URL
-        method: 'POST',
-        body: data,
-      })
-        .then((response) => response.json())
-        .then((result) => {
-          if (result.status === 'ok') {
-            fileUploadContainer.innerHTML =
-              '<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/check/check.gif" alt="Done" width="50" height="50">'
-            console.log('File uploaded:', result.data.downloadPage) // Aangepaste response handling
-            window.voiceflow.chat.interact({
-              type: 'complete',
-              payload: {
-                file: result.data.downloadPage, // Aangepaste URL
-              },
-            })
+      // Eerst een server ophalen van Gofile
+      let serverUrl = 'https://api.gofile.io/getServer';
+      try {
+        const serverResponse = await fetch(serverUrl);
+        const serverData = await serverResponse.json();
+        if (serverData.status === "ok") {
+          const uploadServer = serverData.data.server;
+          
+          // Upload de file naar de verkregen server
+          const uploadUrl = `https://${uploadServer}.gofile.io/uploadFile`;
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            body: data,
+          });
+
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            if (uploadResult.status === "ok") {
+              fileUploadContainer.innerHTML = '<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/check/check.gif" alt="Done" width="50" height="50">';
+              console.log('File uploaded:', uploadResult.data.downloadPage);
+              window.voiceflow.chat.interact({
+                type: 'complete',
+                payload: { file: uploadResult.data.downloadPage },
+              });
+            } else {
+              throw new Error('Upload failed: ' + uploadResult.status);
+            }
           } else {
-            throw new Error('Upload failed')
+            throw new Error('Upload failed: ' + uploadResponse.statusText);
           }
-        })
-        .catch((error) => {
-          console.error(error)
-          fileUploadContainer.innerHTML = '<div>Error during upload</div>'
-        })
-    })
+        } else {
+          throw new Error('Failed to get server: ' + serverData.status);
+        }
+      } catch (error) {
+        console.error(error);
+        fileUploadContainer.innerHTML = '<div>Error during upload</div>';
+      }
+    });
 
-    element.appendChild(fileUploadContainer)
+    element.appendChild(fileUploadContainer);
   },
-}
+};
 
 export const KBUploadExtension = {
   name: 'KBUpload',
