@@ -189,30 +189,26 @@ export const FileUploadExtension = {
       var data = new FormData()
       data.append('file', file)
 
-      fetch('https://tmpfiles.org/api/v1/upload', {
+      // Aanpassing voor GoFile
+      fetch('https://store14.gofile.io/contents/uploadFile', { // Aangepaste URL
         method: 'POST',
         body: data,
       })
-        .then((response) => {
-          if (response.ok) {
-            return response.json()
-          } else {
-            throw new Error('Upload failed: ' + response.statusText)
-          }
-        })
+        .then((response) => response.json())
         .then((result) => {
-          fileUploadContainer.innerHTML =
-            '<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/check/check.gif" alt="Done" width="50" height="50">'
-          console.log('File uploaded:', result.data.url)
-          window.voiceflow.chat.interact({
-            type: 'complete',
-            payload: {
-              file: result.data.url.replace(
-                'https://tmpfiles.org/',
-                'https://tmpfiles.org/dl/'
-              ),
-            },
-          })
+          if (result.status === 'ok') {
+            fileUploadContainer.innerHTML =
+              '<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/check/check.gif" alt="Done" width="50" height="50">'
+            console.log('File uploaded:', result.data.downloadPage) // Aangepaste response handling
+            window.voiceflow.chat.interact({
+              type: 'complete',
+              payload: {
+                file: result.data.downloadPage, // Aangepaste URL
+              },
+            })
+          } else {
+            throw new Error('Upload failed')
+          }
         })
         .catch((error) => {
           console.error(error)
