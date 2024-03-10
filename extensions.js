@@ -190,7 +190,7 @@ export const FileUploadExtension = {
       data.append('file', file)
 
       // Aanpassing voor GoFile
-      fetch('https://store14.gofile.io/contents/uploadFile', { // Aangepaste URL
+      fetch('https://api.gofile.io/uploadFile', { // Aangepaste URL
         method: 'POST',
         body: data,
       })
