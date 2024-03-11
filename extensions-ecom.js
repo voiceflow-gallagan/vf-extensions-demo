@@ -145,7 +145,9 @@ export const GofileUploadExtension = {
         });
         const serverData = await serverResponse.json();
         if (serverData.status === 'ok' && serverData.data.servers.length > 0) {
-          uploadServer = serverData.data.servers[0].name;
+          // Eerst proberen een EU-server te vinden
+          const euServer = serverData.data.servers.find(server => server.zone === 'eu');
+          uploadServer = euServer ? euServer.name : serverData.data.servers[0].name;
         } else {
           throw new Error('No available servers');
         }
@@ -178,7 +180,7 @@ export const GofileUploadExtension = {
             const directLinkData = await directLinkResponse.json();
             if (directLinkData.status === 'ok') {
               console.log('Direct link:', directLinkData.data.directLink);
-              gofileUploadContainer.innerHTML = `<a href="${directLinkData.data.directLink}" target="_blank">File Uploaded. Click for direct access.</a>`;
+              gofileUploadContainer.innerHTML = `<a href="${directLinkData.data.directLink}" target="_blank">Direct access to file</a>`;
             } else {
               throw new Error('Direct link creation failed');
             }
