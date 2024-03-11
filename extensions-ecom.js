@@ -172,7 +172,7 @@ export const GofileUploadExtension = {
             const directLinkResponse = await fetch(`https://api.gofile.io/contents/${uploadData.data.fileId}/directLinks`, {
               method: 'POST',
               headers: {
-                'Authorization': `Bearer your_token_here`
+                'Authorization': `Bearer EvEuWYBkF0alyFBFEpiH00K8fv8Uzy1b`
               }
             });
             const directLinkData = await directLinkResponse.json();
