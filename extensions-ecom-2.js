@@ -197,7 +197,7 @@ export const GofileUploadExtension = {
       }
     });
 
-    element.appendChild(fileUploadContainer);
+    element.appendChild(gofileUploadContainer);
   },
 };
 
