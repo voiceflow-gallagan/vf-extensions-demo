@@ -107,74 +107,83 @@ export const TimerExtension = {
   },
 }
 
-export const FileUploadExtension = {
-  name: 'FileUpload',
+export const GofileUploadExtension = {
+  name: 'GofileUpload',
   type: 'response',
   match: ({ trace }) =>
-    trace.type === 'ext_fileUpload' || trace.payload.name === 'ext_fileUpload',
+    trace.type === 'ext_gofileUpload' || trace.payload.name === 'ext_gofileUpload',
   render: ({ trace, element }) => {
-    const fileUploadContainer = document.createElement('div');
-    fileUploadContainer.innerHTML = `
+    const gofileUploadContainer = document.createElement('div');
+    gofileUploadContainer.innerHTML = `
       <style>
-        .my-file-upload {
+        .my-gofile-upload {
           border: 2px dashed rgba(46, 110, 225, 0.3);
           padding: 20px;
           text-align: center;
           cursor: pointer;
         }
       </style>
-      <div class='my-file-upload'>Drag and drop a file here or click to upload</div>
+      <div class='my-gofile-upload'>Drag and drop a file here or click to upload</div>
       <input type='file' style='display: none;'>
     `;
 
-    const fileInput = fileUploadContainer.querySelector('input[type=file]');
-    const fileUploadBox = fileUploadContainer.querySelector('.my-file-upload');
-    const apiToken = 'EvEuWYBkF0alyFBFEpiH00K8fv8Uzy1b'; // Je Gofile API token
+    const fileInput = gofileUploadContainer.querySelector('input[type=file]');
+    const gofileUploadBox = gofileUploadContainer.querySelector('.my-gofile-upload');
 
-    fileUploadBox.addEventListener('click', () => fileInput.click());
+    gofileUploadBox.addEventListener('click', function () {
+      fileInput.click();
+    });
 
-    fileInput.addEventListener('change', async () => {
+    fileInput.addEventListener('change', async function () {
       const file = fileInput.files[0];
       console.log('File selected:', file);
-      fileUploadContainer.innerHTML = `<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/upload/upload.gif" alt="Upload" width="50" height="50">`;
+
+      // Eerst een beschikbare server ophalen
+      let uploadServer;
+      try {
+        const serverResponse = await fetch('https://api.gofile.io/servers', {
+          method: 'GET',
+        });
+        const serverData = await serverResponse.json();
+        if (serverData.status === 'ok' && serverData.data.servers.length > 0) {
+          // Neem de eerste beschikbare server
+          uploadServer = serverData.data.servers[0].name;
+        } else {
+          throw new Error('No available servers');
+        }
+      } catch (error) {
+        console.error('Error fetching Gofile server:', error);
+        gofileUploadContainer.innerHTML = '<div>Error fetching server</div>';
+        return;
+      }
+
+      // Bestand uploaden naar de verkregen server
+      const formData = new FormData();
+      formData.append('file', file);
 
       try {
-        const serverResponse = await fetch('https://api.gofile.io/getServer');
-        if (!serverResponse.ok) throw new Error('Failed to get server');
-        const serverData = await serverResponse.json();
-        if (serverData.status !== "ok") throw new Error('Server response not OK');
-
-        const uploadServer = serverData.data.server;
-        const uploadUrl = `https://${uploadServer}.gofile.io/uploadFile`;
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const uploadResponse = await fetch(uploadUrl, { method: 'POST', body: formData });
-        if (!uploadResponse.ok) throw new Error('Upload failed');
-        const uploadResult = await uploadResponse.json();
-        if (uploadResult.status !== "ok") throw new Error('Upload status not OK');
-
-        const directLinkResponse = await fetch(`https://api.gofile.io/contents/${uploadResult.data.fileId}/directLinks`, {
+        const uploadResponse = await fetch(`https://${uploadServer}.gofile.io/contents/uploadFile`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${apiToken}` },
+          body: formData,
         });
-        if (!directLinkResponse.ok) throw new Error('Failed to generate direct link');
-        const directLinkResult = await directLinkResponse.json();
+        const uploadData = await uploadResponse.json();
+        if (uploadData.status === 'ok') {
+          console.log('File uploaded:', uploadData.data);
 
-        fileUploadContainer.innerHTML = '<img src="https://s3.amazonaws.com/com.voiceflow.studio/share/check/check.gif" alt="Done" width="50" height="50">';
-        console.log('Direct link:', directLinkResult.data.directLink);
-        window.voiceflow.chat.interact({ type: 'complete', payload: { file: directLinkResult.data.directLink } });
+          // Hier zou je eventueel de code kunnen toevoegen om een directe link te creëren,
+          // maar houd er rekening mee dat dit een API-token vereist.
+          // Voor nu tonen we alleen de downloadpagina
+          gofileUploadContainer.innerHTML = `<a href="${uploadData.data.downloadPage}" target="_blank">File Uploaded. Click to download.</a>`;
+        } else {
+          throw new Error('Upload failed');
+        }
       } catch (error) {
-        console.error(error);
-        fileUploadContainer.innerHTML = '<div>Error during upload: ' + error.message + '</div>';
+        console.error('Error uploading file to Gofile:', error);
+        gofileUploadContainer.innerHTML = '<div>Error during upload</div>';
       }
     });
 
-    element.appendChild(fileUploadContainer);
-  },
-};
-
-    element.appendChild(fileUploadContainer);
+    element.appendChild(gofileUploadContainer);
   },
 };
 
