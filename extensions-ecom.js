@@ -138,7 +138,6 @@ export const GofileUploadExtension = {
       const file = fileInput.files[0];
       console.log('File selected:', file);
 
-      // Eerst een beschikbare server ophalen
       let uploadServer;
       try {
         const serverResponse = await fetch('https://api.gofile.io/servers', {
@@ -146,7 +145,6 @@ export const GofileUploadExtension = {
         });
         const serverData = await serverResponse.json();
         if (serverData.status === 'ok' && serverData.data.servers.length > 0) {
-          // Neem de eerste beschikbare server
           uploadServer = serverData.data.servers[0].name;
         } else {
           throw new Error('No available servers');
@@ -157,7 +155,6 @@ export const GofileUploadExtension = {
         return;
       }
 
-      // Bestand uploaden naar de verkregen server
       const formData = new FormData();
       formData.append('file', file);
 
@@ -170,10 +167,25 @@ export const GofileUploadExtension = {
         if (uploadData.status === 'ok') {
           console.log('File uploaded:', uploadData.data);
 
-          // Hier zou je eventueel de code kunnen toevoegen om een directe link te creëren,
-          // maar houd er rekening mee dat dit een API-token vereist.
-          // Voor nu tonen we alleen de downloadpagina
-          gofileUploadContainer.innerHTML = `<a href="${uploadData.data.downloadPage}" target="_blank">File Uploaded. Click to download.</a>`;
+          // Een directe link aanmaken
+          try {
+            const directLinkResponse = await fetch(`https://api.gofile.io/contents/${uploadData.data.fileId}/directLinks`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer your_token_here`
+              }
+            });
+            const directLinkData = await directLinkResponse.json();
+            if (directLinkData.status === 'ok') {
+              console.log('Direct link:', directLinkData.data.directLink);
+              gofileUploadContainer.innerHTML = `<a href="${directLinkData.data.directLink}" target="_blank">File Uploaded. Click for direct access.</a>`;
+            } else {
+              throw new Error('Direct link creation failed');
+            }
+          } catch (error) {
+            console.error('Error creating direct link:', error);
+            gofileUploadContainer.innerHTML = '<div>Error creating direct link</div>';
+          }
         } else {
           throw new Error('Upload failed');
         }
