@@ -10,6 +10,7 @@ The demo showcases how to extend the capabilities of a chat widget by integratin
 ## Extensions
 The extensions.js file contains the following extensions:
 
+**DisableInputExtension**: Disable/Enable input field.
 **VideoExtension**: Embeds a video player into the chat.
 **TimerExtension**: Creates a countdown timer.
 **FormExtension**: Generates a form for user input.
@@ -44,6 +45,7 @@ window.voiceflow.chat.load({
   allowDangerousHTML: true,
   assistant: {
     extensions: [
+      DisableInputExtension,
       VideoExtension,
       TimerExtension,
       FormExtension,
