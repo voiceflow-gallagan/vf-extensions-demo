@@ -47,7 +47,7 @@
           s = d.getElementsByTagName(t)[0];
         v.onload = function () {
           window.voiceflow.chat.load({
-            verify: { projectID: '65e8846e905ec742d67e774f' },
+            verify: { projectID: '66c367ef77162a334f4bf64f' },
             url: 'https://general-runtime.voiceflow.com',
             versionID: 'development',
             user: {
@@ -56,10 +56,11 @@
             render: {
               mode: 'overlay',
             },
-            autostart: false,
+            autostart: true,
             allowDangerousHTML: true,
             assistant: {
               extensions: [
+                DisableInputExtension,
                 VideoExtension,
                 TimerExtension,
                 FormExtension,
